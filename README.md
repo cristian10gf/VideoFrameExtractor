@@ -35,34 +35,34 @@ pip install -r requirements.txt
 
 ### Modo automático (recomendado):
 ```bash
-python video_frame_extractor_cv2.py video.mp4
+python main.py video.mp4
 ```
 Extrae automáticamente el número óptimo de frames (20 fps).
 
 ### Ver información del video:
 ```bash
-python video_frame_extractor_cv2.py video.mp4 --info
+python main.py video.mp4 --info
 ```
 
 ### Extraer número específico de frames:
 ```bash
-python video_frame_extractor_cv2.py video.mp4 -n 100
+python main.py video.mp4 -n 100
 ```
 
 ### Personalizar dimensiones:
 ```bash
-python video_frame_extractor_cv2.py video.mp4 -n 50 -w 1920 -h 1080
+python main.py video.mp4 -n 50 -w 1920 -h 1080
 ```
 
 ### Control de calidad:
 ```bash
-python video_frame_extractor_cv2.py video.mp4 -q 100
+python main.py video.mp4 -q 100
 ```
 Calidad JPEG de 0 a 100 (mayor = mejor calidad, mayor tamaño).
 
 ### Configuración completa:
 ```bash
-python video_frame_extractor_cv2.py video.mp4 \
+python main.py video.mp4 \
   -n 200 \
   -w 1920 \
   -h 1080 \
