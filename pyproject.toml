@@ -1,10 +1,27 @@
 [project]
 name = "videoframeextractor"
 version = "0.1.0"
-description = "Add your description here"
+description = "CLI para extraer frames de videos MP4 como imágenes JPG usando OpenCV"
 readme = "README.md"
 requires-python = ">=3.12"
+authors = [
+    { name = "Cristian"}
+]
+keywords = ["video", "opencv", "frame-extractor", "image-processing", "cli"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Video",
+]
 dependencies = [
     "numpy>=2.4.2",
     "opencv-python>=4.13.0.90",
 ]
+
+[project.scripts]
+videoframeextractor = "main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
