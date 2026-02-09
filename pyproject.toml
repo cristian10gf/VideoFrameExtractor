@@ -1,13 +1,13 @@
 [project]
 name = "videoframeextractor"
-version = "0.1.0"
-description = "CLI para extraer frames de videos MP4 como imágenes JPG usando OpenCV"
+version = "0.2.0"
+description = "CLI de alto rendimiento para extraer frames de videos usando Decord y Pillow"
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [
     { name = "Cristian"}
 ]
-keywords = ["video", "opencv", "frame-extractor", "image-processing", "cli"]
+keywords = ["video", "decord", "frame-extractor", "image-processing", "cli", "typer"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -15,8 +15,11 @@ classifiers = [
     "Topic :: Multimedia :: Video",
 ]
 dependencies = [
+    "decord>=0.6.0",
     "numpy>=2.4.2",
-    "opencv-python>=4.13.0.90",
+    "pillow>=12.1.0",
+    "rich>=14.3.2",
+    "typer>=0.21.1",
 ]
 
 [project.scripts]
@@ -25,3 +28,7 @@ videoframeextractor = "main:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+only-include = ["main.py"]
