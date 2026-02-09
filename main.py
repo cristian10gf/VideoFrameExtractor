@@ -10,7 +10,7 @@ from enum import Enum
 
 import numpy as np
 import typer
-from decord import VideoReader, cpu
+from decord import VideoReader, cpu, gpu
 from PIL import Image
 from rich.console import Console
 from rich.progress import (
@@ -41,9 +41,11 @@ class ImageFormat(str, Enum):
 class VideoFrameExtractor:
     """Extractor de frames de video usando Decord (2-3x más rápido que OpenCV)."""
 
-    def __init__(self, video_path: str):
+    def __init__(self, video_path: str, use_gpu: bool = False, gpu_id: int = 0):
         self.video_path = video_path
-        self.vr = VideoReader(video_path, ctx=cpu(0))
+        self.use_gpu = use_gpu
+        ctx = gpu(gpu_id) if use_gpu else cpu(0)
+        self.vr = VideoReader(video_path, ctx=ctx)
         self.fps = self.vr.get_avg_fps()
         self.total_frames = len(self.vr)
         self.width, self.height = self.vr[0].shape[1], self.vr[0].shape[0]
@@ -167,6 +169,7 @@ def show_video_info(extractor: VideoFrameExtractor, filename: str) -> None:
     table.add_row("FPS", f"{info['fps']:.2f}")
     table.add_row("Frames totales", f"{info['total_frames']:,}")
     table.add_row("Resolución", f"{info['width']}x{info['height']}")
+    table.add_row("Dispositivo", "GPU" if extractor.use_gpu else "CPU")
 
     console.print(table)
 
@@ -182,13 +185,18 @@ def extract(
     fps: float = typer.Option(20.0, "--fps", help="FPS para cálculo automático"),
     fmt: ImageFormat = typer.Option(ImageFormat.jpg, "-f", "--format", help="Formato de imagen"),
     info_only: bool = typer.Option(False, "--info", help="Solo mostrar información del video"),
+    use_gpu: bool = typer.Option(False, "--gpu", help="Usar GPU para decodificación (requiere CUDA)"),
+    gpu_id: int = typer.Option(0, "--gpu-id", help="ID de la GPU a usar (default: 0)"),
 ) -> None:
     """Extrae frames de un video de forma rápida y eficiente."""
     try:
-        with console.status("[bold blue]Abriendo video y analizando frames...", spinner="dots"):
-            extractor = VideoFrameExtractor(str(video))
+        device_msg = f"GPU {gpu_id}" if use_gpu else "CPU"
+        with console.status(f"[bold blue]Abriendo video en {device_msg} y analizando frames...", spinner="dots"):
+            extractor = VideoFrameExtractor(str(video), use_gpu=use_gpu, gpu_id=gpu_id)
     except Exception as e:
         console.print(f"[red]Error al abrir el video:[/red] {e}")
+        if use_gpu:
+            console.print("[yellow]Tip: Asegúrate de tener CUDA instalado y una GPU compatible.[/yellow]")
         raise typer.Exit(1)
 
     show_video_info(extractor, video.name)
