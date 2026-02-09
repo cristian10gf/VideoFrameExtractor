@@ -31,7 +31,7 @@ class VideoFrameExtractor:
             video_path: Ruta al archivo de video
         """
         self.video_path = video_path
-        self.cap = None
+        self.cap: cv2.VideoCapture
         self.video_info = {}
 
     def __enter__(self):
@@ -159,7 +159,7 @@ class VideoFrameExtractor:
 
         print()  # Nueva línea después de la barra de progreso
         print(f"{'━' * 50}")
-        print(f"\n✅ Extracción completada!")
+        print("\n✅ Extracción completada!")
         print(f"📊 Frames extraídos exitosamente: {successful_extractions}/{num_frames}")
 
         return extracted_files
@@ -370,12 +370,12 @@ def main():
             )
 
             if extracted_files:
-                print(f"\n✨ Proceso completado exitosamente!")
+                print("\n✨ Proceso completado exitosamente!")
                 print(f"📂 Los frames están en: ./{config['output_dir']}/")
                 print(f"📝 Archivos creados: {len(extracted_files)}")
 
                 # Mostrar algunos ejemplos
-                print(f"\n📋 Ejemplos de archivos creados:")
+                print("\n📋 Ejemplos de archivos creados:")
                 for filepath in extracted_files[:3]:
                     print(f"   • {os.path.basename(filepath)}")
                 if len(extracted_files) > 3:
