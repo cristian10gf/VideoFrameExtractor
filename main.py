@@ -6,6 +6,7 @@ Extrae frames de un video MP4 y los guarda como imágenes JPG usando OpenCV.
 
 import sys
 import os
+import argparse
 from pathlib import Path
 
 try:
@@ -197,109 +198,30 @@ class VideoFrameExtractor:
         return canvas
 
 
-def print_usage():
-    """Imprime las instrucciones de uso."""
-    usage = """
-╔═══════════════════════════════════════════════════════════╗
-║       VIDEO FRAME EXTRACTOR CLI - Versión OpenCV         ║
-╚═══════════════════════════════════════════════════════════╝
-
-USO:
-    python video_frame_extractor_cv2.py <archivo_video.mp4> [opciones]
-
-OPCIONES:
-    -n, --num-frames <numero>    Número de frames a extraer (auto si se omite)
-    -w, --width <pixels>         Ancho de las imágenes (default: 1200)
-    -h, --height <pixels>        Alto de las imágenes (default: 680)
-    -o, --output <directorio>    Directorio de salida (default: frames_output)
-    -q, --quality <0-100>        Calidad JPEG (default: 95)
-    --fps <numero>               Frames por segundo para cálculo óptimo (default: 20)
-    --info                       Solo muestra información del video
-    --help                       Muestra esta ayuda
-
-EJEMPLOS:
-    # Extracción automática óptima
-    python video_frame_extractor_cv2.py video.mp4
-
-    # Extraer 100 frames específicos
-    python video_frame_extractor_cv2.py video.mp4 -n 100
-
-    # Personalizar dimensiones y calidad
-    python video_frame_extractor_cv2.py video.mp4 -n 50 -w 1920 -h 1080 -q 100
-
-    # Solo ver información del video
-    python video_frame_extractor_cv2.py video.mp4 --info
-
-    # Cambiar FPS óptimo a 30 frames por segundo
-    python video_frame_extractor_cv2.py video.mp4 --fps 30
-
-CARACTERÍSTICAS:
-    ✓ Extracción espaciada uniforme (no frames consecutivos)
-    ✓ Redimensionamiento inteligente con padding
-    ✓ Preservación de aspecto original
-    ✓ Barra de progreso en tiempo real
-    ✓ Control de calidad JPEG
-    ✓ Manejo robusto de errores
-
-REQUISITOS:
-    pip install opencv-python numpy
-"""
-    print(usage)
-
-
 def parse_arguments():
-    """Parsea los argumentos de línea de comandos."""
-    if len(sys.argv) < 2 or '--help' in sys.argv:
-        print_usage()
-        sys.exit(0)
+    """Parsea los argumentos de línea de comandos usando argparse."""
+    parser = argparse.ArgumentParser(
+        description="Video Frame Extractor CLI - Extrae frames de un video usando OpenCV.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog="""
+Ejemplos:
+    python main.py video.mp4
+    python main.py video.mp4 -n 100
+    python main.py video.mp4 -n 50 -w 1920 -h 1080 -q 100
+    python main.py video.mp4 --info
+        """
+    )
 
-    config = {
-        'video_path': sys.argv[1],
-        'num_frames': None,
-        'width': 1200,
-        'height': 680,
-        'output_dir': 'frames_output',
-        'quality': 95,
-        'fps_for_optimal': 20,
-        'info_only': False
-    }
+    parser.add_argument("video_path", help="Ruta al archivo de video")
+    parser.add_argument("-n", "--num-frames", type=int, default=None, help="Número de frames a extraer (auto si se omite)")
+    parser.add_argument("-w", "--width", type=int, default=1200, help="Ancho de las imágenes")
+    parser.add_argument("-h", "--height", type=int, default=680, help="Alto de las imágenes")
+    parser.add_argument("-o", "--output", dest="output_dir", default="frames_output", help="Directorio de salida")
+    parser.add_argument("-q", "--quality", type=int, default=95, help="Calidad JPEG (0-100)")
+    parser.add_argument("--fps", dest="fps_for_optimal", type=float, default=20.0, help="FPS para cálculo óptimo")
+    parser.add_argument("--info", dest="info_only", action="store_true", help="Solo muestra información del video")
 
-    i = 2
-    while i < len(sys.argv):
-        arg = sys.argv[i]
-
-        try:
-            if arg in ['-n', '--num-frames']:
-                config['num_frames'] = int(sys.argv[i + 1])
-                i += 2
-            elif arg in ['-w', '--width']:
-                config['width'] = int(sys.argv[i + 1])
-                i += 2
-            elif arg in ['-h', '--height']:
-                config['height'] = int(sys.argv[i + 1])
-                i += 2
-            elif arg in ['-o', '--output']:
-                config['output_dir'] = sys.argv[i + 1]
-                i += 2
-            elif arg in ['-q', '--quality']:
-                quality = int(sys.argv[i + 1])
-                config['quality'] = max(0, min(100, quality))
-                i += 2
-            elif arg == '--fps':
-                config['fps_for_optimal'] = float(sys.argv[i + 1])
-                i += 2
-            elif arg == '--info':
-                config['info_only'] = True
-                i += 1
-            else:
-                print(f"❌ Error: Argumento desconocido '{arg}'", file=sys.stderr)
-                print("Usa --help para ver las opciones disponibles", file=sys.stderr)
-                sys.exit(1)
-        except (IndexError, ValueError) as e:
-            print(f"❌ Error en argumento {arg}: {e}", file=sys.stderr)
-            sys.exit(1)
-
-    return config
+    return vars(parser.parse_args())
 
 
 def format_time(seconds):
