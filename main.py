@@ -75,12 +75,16 @@ class VideoFrameExtractor:
         quality: int,
         target_fps: float,
         fmt: ImageFormat,
+        sample_fps: Optional[float] = None,
     ) -> list[Path]:
         """Extrae frames espaciados uniformemente usando batch loading."""
         output_dir.mkdir(parents=True, exist_ok=True)
 
         if num_frames is None:
-            num_frames = self.calculate_optimal_frames(target_fps)
+            if sample_fps is not None:
+                num_frames = max(1, int(self.duration * sample_fps))
+            else:
+                num_frames = self.calculate_optimal_frames(target_fps)
         num_frames = min(num_frames, self.total_frames)
 
         # Índices espaciados uniformemente
@@ -182,7 +186,8 @@ def extract(
     height: int = typer.Option(680, "-H", "--height", help="Alto de las imágenes"),
     output: Path = typer.Option(Path("frames_output"), "-o", "--output", help="Directorio de salida"),
     quality: int = typer.Option(95, "-q", "--quality", min=0, max=100, help="Calidad (0-100)"),
-    fps: float = typer.Option(20.0, "--fps", help="FPS para cálculo automático"),
+    fps: float = typer.Option(20.0, "--fps", help="FPS para cálculo automático de frames"),
+    sample_fps: Optional[float] = typer.Option(None, "--sample-fps", help="Frames por segundo a muestrear (ej: 10 guarda 10fps del video). Ignorado si se usa --num-frames"),
     fmt: ImageFormat = typer.Option(ImageFormat.jpg, "-f", "--format", help="Formato de imagen"),
     info_only: bool = typer.Option(False, "--info", help="Solo mostrar información del video"),
     use_gpu: bool = typer.Option(False, "--gpu", help="Usar GPU para decodificación (requiere CUDA)"),
@@ -206,9 +211,17 @@ def extract(
         raise typer.Exit(0)
 
     # Mostrar configuración
-    actual_frames = num_frames or extractor.calculate_optimal_frames(fps)
+    if num_frames is not None:
+        actual_frames = min(num_frames, extractor.total_frames)
+    elif sample_fps is not None:
+        actual_frames = min(max(1, int(extractor.duration * sample_fps)), extractor.total_frames)
+    else:
+        actual_frames = extractor.calculate_optimal_frames(fps)
+
     console.print("\n[bold]Configuración:[/bold]")
     console.print(f"  Frames a extraer: [cyan]{actual_frames}[/cyan]")
+    if sample_fps is not None and num_frames is None:
+        console.print(f"  Sampling: [cyan]{sample_fps} fps[/cyan] × {extractor.duration:.1f}s = {actual_frames} frames")
     console.print(f"  Dimensiones: [cyan]{width}x{height}[/cyan]")
     console.print(f"  Formato: [cyan]{fmt.value.upper()}[/cyan] (calidad: {quality}%)")
     console.print(f"  Salida: [cyan]{output}[/cyan]\n")
@@ -222,6 +235,7 @@ def extract(
         quality=quality,
         target_fps=fps,
         fmt=fmt,
+        sample_fps=sample_fps,
     )
 
     if extracted:
